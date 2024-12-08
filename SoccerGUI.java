@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Random;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionListener;
 
@@ -22,7 +23,7 @@ public class SoccerGUI {
   private void setupHomeFrame(JFrame frame) {
     frame.getContentPane().removeAll();
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(800, 600);
+    frame.setSize(1000, 600);
     frame.setLayout(new BorderLayout());
     frame.setLocationRelativeTo(null);
 
@@ -246,7 +247,14 @@ public class SoccerGUI {
     JPanel simulatePanel = setupSimulationPanel(frame, league, false);
     JPanel simulateSeasonPanel = setupSimulationPanel(frame, league, true);
     JPanel backButtonPanel = setupBackButtonPanel(frame, e -> viewAllLeagues(frame));
-    JPanel startSeasonPanel = setupStartSeasonPanel(frame, league);
+
+    Boolean canStartSeason = false;
+    if (league.getClubArray().size() > 1 && league.getClubArray().stream()
+        .allMatch(club -> club.getPlayers() != null && club.getPlayers().size() >= 11)) {
+      canStartSeason = true;
+    }
+
+    JPanel startSeasonPanel = setupStartSeasonPanel(frame, league, canStartSeason);
     JPanel fixturesPanel = setupMatchPanel(league, currWeek, true);
     JButton viewFixturesButton = createStyledButton("View All Fixtures");
     viewFixturesButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -272,8 +280,7 @@ public class SoccerGUI {
       detailPanel.add(addClubPanel);
     }
 
-    if (currWeek == 0 && league.getClubArray().size() > 1 && league.getClubArray().stream()
-        .allMatch(club -> club.getPlayers() != null && club.getPlayers().size() >= 11)) {
+    if (currWeek == 0) {
       detailPanel.add(startSeasonPanel);
     }
 
@@ -349,13 +356,16 @@ public class SoccerGUI {
 
     JLabel headerLabel = createStyledLabel(club.getName(), 28, true, true);
 
+    JLabel clubDetailsLabel = createStyledLabel("Club Details", 20, true, false);
+    clubDetailsLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
     JPanel clubDetailsPanel = setupClubDetailsPanel(club);
 
-    JPanel playerList = setupPlayerListPanel(club);
+    JPanel playerList = setupPlayerListPanel(frame, league, club);
 
     JPanel backButton = setupBackButtonPanel(frame, e -> viewLeagueDetails(frame, league));
 
     viewClubPanel.add(headerLabel);
+    viewClubPanel.add(clubDetailsLabel);
     viewClubPanel.add(clubDetailsPanel);
     viewClubPanel.add(playerList);
     viewClubPanel.add(backButton);
@@ -368,7 +378,9 @@ public class SoccerGUI {
     frame.repaint();
   }
 
-  private void addPlayer(JFrame frame, League league, Club club) {
+  private void addNewPlayer(JFrame frame, League league, Club club) {
+    frame.getContentPane().removeAll();
+
     JPanel addPlayerPanel = new JPanel();
     addPlayerPanel.setLayout(new BoxLayout(addPlayerPanel, BoxLayout.Y_AXIS));
 
@@ -380,74 +392,145 @@ public class SoccerGUI {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets = new Insets(10, 10, 10, 10);
 
-    JLabel addPlayerLabel = new JLabel("Add New Player", SwingConstants.CENTER);
-    addPlayerLabel.setFont(new Font(FONT_NAME, Font.BOLD, 24));
-    addPlayerLabel.setForeground(Color.WHITE);
+    // Player Details Section
+    JLabel addPlayerLabel = createStyledLabel("Add a New Player", 24, true, true);
+    addPlayerLabel.setHorizontalAlignment(SwingConstants.CENTER);
     gbc.gridwidth = 3;
     gbc.gridx = 0;
     gbc.gridy = 0;
     centerPanel.add(addPlayerLabel, gbc);
 
-    JLabel playerNameLabel = createStyledLabel("Player Name");
-    JTextField playerNameField = createStyledTextField();
+    // Name
+    JLabel nameLabel = createStyledLabel("Name");
+    JTextField nameField = createStyledTextField();
+    JButton randomNameButton = createStyledButton("Random");
+    nameField.setPreferredSize(new Dimension(300, randomNameButton.getPreferredSize().height));
     gbc.gridwidth = 1;
     gbc.gridx = 0;
     gbc.gridy = 1;
-    centerPanel.add(playerNameLabel, gbc);
+    centerPanel.add(nameLabel, gbc);
     gbc.gridx = 1;
-    centerPanel.add(playerNameField, gbc);
+    centerPanel.add(nameField, gbc);
+    gbc.gridx = 2;
+    centerPanel.add(randomNameButton, gbc);
 
-    JLabel playerPositionLabel = createStyledLabel("Player Position");
-    JTextField playerPositionField = createStyledTextField();
+    // Position
+    JLabel posLabel = createStyledLabel("Position");
+    String[] positions = { "FW", "MID", "DF", "GK" };
+    JComboBox<String> posComboBox = new JComboBox<>(positions);
     gbc.gridx = 0;
     gbc.gridy = 2;
-    centerPanel.add(playerPositionLabel, gbc);
+    centerPanel.add(posLabel, gbc);
     gbc.gridx = 1;
-    centerPanel.add(playerPositionField, gbc);
+    centerPanel.add(posComboBox, gbc);
 
-    JLabel playerAgeLabel = createStyledLabel("Player Age");
-    JTextField playerAgeField = createStyledTextField();
+    // Age
+    JLabel ageLabel = createStyledLabel("Age");
+    JTextField ageField = createStyledTextField();
+    JButton randomAgeButton = createStyledButton("Random");
+    ageField.setPreferredSize(new Dimension(300, randomAgeButton.getPreferredSize().height));
     gbc.gridx = 0;
     gbc.gridy = 3;
-    centerPanel.add(playerAgeLabel, gbc);
+    centerPanel.add(ageLabel, gbc);
     gbc.gridx = 1;
-    centerPanel.add(playerAgeField, gbc);
+    centerPanel.add(ageField, gbc);
+    gbc.gridx = 2;
+    centerPanel.add(randomAgeButton, gbc);
 
-    JButton addPlayerConfirmButton = createStyledButton("Add Player");
-    gbc.gridwidth = 3;
+    // Nationality
+    JLabel natLabel = createStyledLabel("Nationality");
+    JTextField natField = createStyledTextField();
+    JButton randomNatButton = createStyledButton("Random");
+    natField.setPreferredSize(new Dimension(300, randomNatButton.getPreferredSize().height));
     gbc.gridx = 0;
     gbc.gridy = 4;
-    centerPanel.add(addPlayerConfirmButton, gbc);
+    centerPanel.add(natLabel, gbc);
+    gbc.gridx = 1;
+    centerPanel.add(natField, gbc);
+    gbc.gridx = 2;
+    centerPanel.add(randomNatButton, gbc);
 
-    addPlayerConfirmButton.addActionListener(e -> {
-      String playerName = playerNameField.getText().trim();
-      String position = playerPositionField.getText().trim();
-      String ageText = playerAgeField.getText().trim();
+    // Skills
+    String[] skillLabels = { "PAC", "SHO", "PAS", "DRI", "DEF", "PHY" };
+    JTextField[] skillFields = new JTextField[skillLabels.length];
+    JButton[] randomSkillButtons = new JButton[skillLabels.length];
 
-      if (playerName.isEmpty() || position.isEmpty() || ageText.isEmpty()) {
+    for (int i = 0; i < skillLabels.length; i++) {
+      JLabel skillLabel = createStyledLabel(skillLabels[i]);
+      skillFields[i] = createStyledTextField();
+      randomSkillButtons[i] = createStyledButton("Random");
+      skillFields[i].setPreferredSize(new Dimension(100, randomSkillButtons[i].getPreferredSize().height));
+      gbc.gridx = 0;
+      gbc.gridy = 5 + i;
+      centerPanel.add(skillLabel, gbc);
+      gbc.gridx = 1;
+      centerPanel.add(skillFields[i], gbc);
+      gbc.gridx = 2;
+      centerPanel.add(randomSkillButtons[i], gbc);
+
+      final int index = i;
+      randomSkillButtons[i].addActionListener(e -> {
+        int skillValue = new Random().nextInt(30) + 65;
+        skillFields[index].setText(String.valueOf(skillValue));
+      });
+    }
+
+    randomNameButton.addActionListener(e -> nameField.setText(generateRandomPersonName()));
+    randomAgeButton.addActionListener(e -> ageField.setText(String.valueOf(new Random().nextInt(16) + 18)));
+    randomNatButton.addActionListener(e -> natField.setText(generateRandomNationality()));
+
+    // Button Panel
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setBackground(BLACK);
+    buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
+
+    JButton createButton = createStyledButton("Add Player");
+    JButton backButton = createStyledButton("Back");
+    buttonPanel.add(createButton);
+    buttonPanel.add(backButton);
+
+    gbc.gridwidth = 3;
+    gbc.gridx = 0;
+    gbc.gridy = 11;
+    centerPanel.add(buttonPanel, gbc);
+
+    createButton.addActionListener(e -> {
+      String name = nameField.getText().trim();
+      String position = (String) posComboBox.getSelectedItem();
+      String ageText = ageField.getText().trim();
+      String nationality = natField.getText().trim();
+
+      if (name.isEmpty() || ageText.isEmpty() || nationality.isEmpty()) {
         showErrorDialog(frame, "Please fill in all fields!");
         return;
       }
 
       try {
         int age = Integer.parseInt(ageText);
-        Player newPlayer = new Player();
-        newPlayer.setName(playerName);
+        int[] skills = new int[skillLabels.length];
+        for (int i = 0; i < skillLabels.length; i++) {
+          skills[i] = Integer.parseInt(skillFields[i].getText().trim());
+        }
 
-        showInfoDialog(frame, "Player added successfully!");
+        Player newPlayer = new Player(name, age, nationality, skills[0], skills[1], skills[2], skills[3],
+            skills[4], skills[5], position);
+        club.addPlayers(newPlayer);
 
-        playerNameField.setText("");
-        playerPositionField.setText("");
-        playerAgeField.setText("");
+        showInfoDialog(frame, "Player successfully added!");
+
+        // Clear fields
+        nameField.setText("");
+        ageField.setText("");
+        natField.setText("");
+        for (JTextField skillField : skillFields) {
+          skillField.setText("");
+        }
       } catch (NumberFormatException ex) {
-        showErrorDialog(frame, "Please enter a valid age!");
+        showErrorDialog(frame, "Please enter valid numbers for age and skills!");
       }
     });
 
-    JButton backButton = createStyledButton("Back");
     backButton.addActionListener(e -> viewClubDetails(frame, league, club));
-    gbc.gridx = 1;
-    centerPanel.add(backButton, gbc);
 
     JScrollPane scrollPane = new JScrollPane(centerPanel);
     scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -809,7 +892,7 @@ public class SoccerGUI {
     return matchPanel;
   }
 
-  private JPanel setupStartSeasonPanel(JFrame frame, League league) {
+  private JPanel setupStartSeasonPanel(JFrame frame, League league, boolean canStartSeason) {
     JPanel startSeasonPanel = new JPanel();
     startSeasonPanel.setLayout(new BoxLayout(startSeasonPanel, BoxLayout.Y_AXIS));
     startSeasonPanel.setBackground(BACKGROUND_COLOR);
@@ -817,12 +900,14 @@ public class SoccerGUI {
 
     JLabel seasonLabel = createStyledLabel("Start Season", 20, true, false);
     seasonLabel.setBorder(null);
-    JLabel seasonSubLabel = createStyledLabel("Kick off the season and schedule the upcoming matches for all teams.",
-        16, false, false);
+    String message = canStartSeason ? "Kick off the season and schedule the upcoming matches for all teams."
+        : "Cannot start season. Make sure there are at least 2 clubs and 11 players in each club.";
+    JLabel seasonSubLabel = createStyledLabel(message, 16, false, false);
     seasonSubLabel.setBorder(null);
 
     JButton seasonButton = createStyledButton("Start");
     seasonButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    seasonButton.setEnabled(canStartSeason);
     seasonButton.addActionListener(e -> {
       league.scheduleMatches();
       showInfoDialog(frame, "Season started successfully!");
@@ -880,32 +965,29 @@ public class SoccerGUI {
   private JPanel setupClubDetailsPanel(Club club) {
     JPanel clubDetailsPanel = new JPanel(new GridBagLayout());
     clubDetailsPanel.setBackground(BACKGROUND_COLOR);
+    clubDetailsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = new Insets(15, 20, 15, 20);
+    gbc.insets = new Insets(10, 20, 10, 20);
 
-    JLabel clubDetailsLabel = createStyledLabel("Club Details", 20, true, false);
-    clubDetailsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    clubDetailsLabel.setBorder(null);
-    gbc.gridwidth = 2;
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    gbc.anchor = GridBagConstraints.CENTER;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    clubDetailsPanel.add(clubDetailsLabel, gbc);
-
-    JLabel stadiumLabel = createStyledLabel("Stadium: " + club.getStadion());
-    JLabel capacityLabel = createStyledLabel("Stadium Capacity: " + club.getCapacity());
-
-    JLabel coachNameLabel = createStyledLabel("Coach Name: " + club.getCoach().getName());
-    JLabel coachAgeLabel = createStyledLabel("Coach Age: " + club.getCoach().getAge());
-    JLabel coachNationalityLabel = createStyledLabel("Coach Nationality: " + club.getCoach().getNationality());
-    JLabel coachExpLabel = createStyledLabel("Coach Experience: " + club.getCoach().getExp());
+    JLabel stadiumLabel = createStyledLabel("Stadium: " + club.getStadion(), 16, true, false);
+    stadiumLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+    JLabel capacityLabel = createStyledLabel("Stadium Capacity: " + club.getCapacity(), 16, true, false);
+    capacityLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+    JLabel coachNameLabel = createStyledLabel("Coach Name: " + club.getCoach().getName(), 16, true, false);
+    coachNameLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+    JLabel coachAgeLabel = createStyledLabel("Coach Age: " + club.getCoach().getAge(), 16, true, false);
+    coachAgeLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+    JLabel coachNationalityLabel = createStyledLabel("Coach Nationality: " + club.getCoach().getNationality(),
+        16, true, false);
+    coachNationalityLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+    JLabel coachExpLabel = createStyledLabel("Coach Experience: " + club.getCoach().getExp(), 16, true, false);
+    coachExpLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
     gbc.gridwidth = 1;
     gbc.gridx = 0;
-    gbc.gridy = 1;
+    gbc.gridy = 0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.NONE;
     clubDetailsPanel.add(stadiumLabel, gbc);
@@ -913,40 +995,61 @@ public class SoccerGUI {
     clubDetailsPanel.add(capacityLabel, gbc);
 
     gbc.gridx = 0;
-    gbc.gridy = 2;
+    gbc.gridy = 1;
     clubDetailsPanel.add(coachNameLabel, gbc);
     gbc.gridx = 1;
     clubDetailsPanel.add(coachAgeLabel, gbc);
 
     gbc.gridx = 0;
-    gbc.gridy = 3;
+    gbc.gridy = 2;
     clubDetailsPanel.add(coachNationalityLabel, gbc);
     gbc.gridx = 1;
     clubDetailsPanel.add(coachExpLabel, gbc);
     return clubDetailsPanel;
   }
 
-  private JPanel setupPlayerListPanel(Club club) {
+  private JPanel setupPlayerListPanel(JFrame frame, League league, Club club) {
     JPanel playerListPanel = new JPanel();
     playerListPanel.setLayout(new GridBagLayout());
+    playerListPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
     playerListPanel.setBackground(BACKGROUND_COLOR);
     GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(10, 12, 10, 12);
+    gbc.insets = new Insets(5, 8, 5, 8);
 
-    JLabel tableTitleLabel = createStyledLabel("Player List", 20, true, false);
-    gbc.gridwidth = 11;
+    JLabel tableTitleLabel = createStyledLabel("Squad List", 20, true, true);
+    gbc.gridwidth = 12;
     gbc.gridx = 0;
     gbc.anchor = GridBagConstraints.CENTER;
     playerListPanel.add(tableTitleLabel, gbc);
 
-    String[] tableHeaders = { "#", "Name", "POS", "AGE", "NAT", "PAC", "SHO", "PAS", "DRI", "DEF", "PHY" };
+    JButton addPlayerButton = createStyledButton("Add Player");
+    addPlayerButton.addActionListener(e -> addNewPlayer(frame, league, club));
+
+    if (club.getPlayers() == null || club.getPlayers().size() == 0) {
+      JLabel noPlayerLabel = createStyledLabel("No players in this club", 16, true, true);
+      noPlayerLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+      gbc.gridy = 1;
+      gbc.gridx = 0;
+      gbc.gridwidth = 12;
+      gbc.anchor = GridBagConstraints.CENTER;
+      playerListPanel.add(noPlayerLabel, gbc);
+      gbc.gridy++;
+      playerListPanel.add(addPlayerButton, gbc);
+      return playerListPanel;
+    }
+
+    String[] tableHeaders = { "#", "Name", "POS", "AGE", "NAT", "PAC", "SHO", "PAS", "DRI", "DEF", "PHY", "OVR" };
     for (int i = 0; i < tableHeaders.length; i++) {
-      JLabel tableHeaderLabel = createStyledLabel(tableHeaders[i], 12, true, false);
+      JLabel tableHeaderLabel = createStyledLabel(tableHeaders[i], 16, true, false);
       tableHeaderLabel.setBorder(null);
       gbc.gridx = i;
       gbc.gridy = 1;
       gbc.gridwidth = 1;
-      gbc.anchor = GridBagConstraints.WEST;
+      if (tableHeaders[i] == "Name") {
+        gbc.anchor = GridBagConstraints.WEST;
+      } else {
+        gbc.anchor = GridBagConstraints.CENTER;
+      }
       playerListPanel.add(tableHeaderLabel, gbc);
     }
 
@@ -954,26 +1057,29 @@ public class SoccerGUI {
     for (Player player : club.getPlayers()) {
       gbc.gridy++;
 
-      JLabel rankLabel = createStyledLabel(String.valueOf(cnt++), 12, false, false);
-      JLabel nameLabel = createStyledLabel(player.getName(), 12, false, false);
+      JLabel rankLabel = createStyledLabel(String.valueOf(cnt++), 15, true, false);
+      JLabel nameLabel = createStyledLabel(trimName(player.getName()), 15, true, false);
       nameLabel.setAlignmentX(SwingConstants.LEFT);
-      JLabel nationalityLabel = createStyledLabel(player.getNationality(), 12, false, false);
-      JLabel positionLabel = createStyledLabel(player.getPosition(), 12, false, false);
-      JLabel ageLabel = createStyledLabel(String.valueOf(player.getAge()), 12, false, false);
-      JLabel paceLabel = createStyledLabel(String.valueOf(player.getPace()), 12, false, false);
-      JLabel shootingLabel = createStyledLabel(String.valueOf(player.getShooting()), 12, false, false);
-      JLabel passingLabel = createStyledLabel(String.valueOf(player.getPassing()), 12, false, false);
-      JLabel dribblingLabel = createStyledLabel(String.valueOf(player.getDribbling()), 12, false, false);
-      JLabel defendingLabel = createStyledLabel(String.valueOf(player.getDefending()), 12, false, false);
-      JLabel physicalLabel = createStyledLabel(String.valueOf(player.getPhysical()), 12, false, false);
+      JLabel nationalityLabel = createStyledLabel(trimNationality(player.getNationality()), 15, true, false);
+      JLabel positionLabel = createStyledLabel(player.getPosition(), 15, true, false);
+      JLabel ageLabel = createStyledLabel(String.valueOf(player.getAge()), 15, true, false);
+      JLabel paceLabel = createStyledLabel(String.valueOf(player.getPace()), 15, true, false);
+      JLabel shootingLabel = createStyledLabel(String.valueOf(player.getShooting()), 15, true, false);
+      JLabel passingLabel = createStyledLabel(String.valueOf(player.getPassing()), 15, true, false);
+      JLabel dribblingLabel = createStyledLabel(String.valueOf(player.getDribbling()), 15, true, false);
+      JLabel defendingLabel = createStyledLabel(String.valueOf(player.getDefending()), 15, true, false);
+      JLabel physicalLabel = createStyledLabel(String.valueOf(player.getPhysical()), 15, true, false);
+      JLabel ratingLabel = createStyledLabel(String.valueOf(player.getRating()), 15, true, false);
 
       gbc.gridx = 0;
+      gbc.anchor = GridBagConstraints.CENTER;
+      gbc.fill = GridBagConstraints.NONE;
       playerListPanel.add(rankLabel, gbc);
       gbc.gridx = 1;
       gbc.anchor = GridBagConstraints.WEST;
-      gbc.fill = GridBagConstraints.NONE;
       playerListPanel.add(nameLabel, gbc);
       gbc.gridx = 2;
+      gbc.anchor = GridBagConstraints.CENTER;
       playerListPanel.add(positionLabel, gbc);
       gbc.gridx = 3;
       playerListPanel.add(ageLabel, gbc);
@@ -991,7 +1097,17 @@ public class SoccerGUI {
       playerListPanel.add(defendingLabel, gbc);
       gbc.gridx = 10;
       playerListPanel.add(physicalLabel, gbc);
+      gbc.gridx = 11;
+      playerListPanel.add(ratingLabel, gbc);
     }
+
+    gbc.gridy++;
+    gbc.gridx = 0;
+    gbc.gridwidth = 12;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.anchor = GridBagConstraints.CENTER;
+    playerListPanel.add(addPlayerButton, gbc);
+
     return playerListPanel;
   }
 
@@ -1060,6 +1176,23 @@ public class SoccerGUI {
         .filter(league -> league.getName().equalsIgnoreCase(leagueName))
         .findFirst()
         .orElse(null);
+  }
+
+  private String trimName(String name) {
+    String[] parts = name.split(" ");
+
+    if (name.length() > 15 && parts.length > 1) {
+      StringBuilder trimmedName = new StringBuilder();
+      trimmedName.append(parts[0].charAt(0)).append(". ");
+      trimmedName.append(parts[parts.length - 1]);
+      return trimmedName.toString();
+    }
+
+    return name;
+  }
+
+  private String trimNationality(String nationality) {
+    return nationality.substring(0, 3).toUpperCase();
   }
 
   private String generateRandomLeagueName() {
@@ -1156,7 +1289,7 @@ public class SoccerGUI {
   }
 
   private String generateRandomNationality() {
-    String[] nationalities = { "American", "Spanish", "Italian", "Brazilian", "French", "German" };
+    String[] nationalities = { "USA", "Spain", "Italy", "Brazil", "France", "Germany", "Argentina", "England" };
     return nationalities[new Random().nextInt(nationalities.length)];
   }
 
@@ -1293,8 +1426,8 @@ public class SoccerGUI {
     liverpool.addPlayers(new Player("Trent Alexander-Arnold", 26, "England", 85, 80, 85, 80, 75, 80, "DF"));
     liverpool.addPlayers(new Player("Jordan Henderson", 34, "England", 75, 75, 80, 82, 85, 80, "MID"));
     liverpool.addPlayers(new Player("Diogo Jota", 27, "Portugal", 85, 80, 78, 85, 75, 80, "FW"));
-    liverpool.addPlayers(new Player("Darwin Núñez", 24, "Uruguay", 90, 82, 75, 85, 75, 80, "FW"));
-    liverpool.addPlayers(new Player("Luis Díaz", 27, "Colombia", 87, 80, 75, 85, 80, 85, "FW"));
+    liverpool.addPlayers(new Player("Darwin Nunez", 24, "Uruguay", 90, 82, 75, 85, 75, 80, "FW"));
+    liverpool.addPlayers(new Player("Luis Diaz", 27, "Colombia", 87, 80, 75, 85, 80, 85, "FW"));
     liverpool.addPlayers(new Player("Ibrahima Konate", 25, "France", 75, 70, 80, 75, 90, 85, "DF"));
 
     // Add Players to Manchester City
@@ -1312,7 +1445,7 @@ public class SoccerGUI {
 
     // Add Players to Arsenal
     arsenal.addPlayers(new Player("Bukayo Saka", 22, "England", 85, 80, 85, 88, 75, 80, "FW"));
-    arsenal.addPlayers(new Player("Martin Ødegaard", 25, "Norway", 75, 85, 90, 80, 70, 82, "MID"));
+    arsenal.addPlayers(new Player("Martin Odegaard", 25, "Norway", 75, 85, 90, 80, 70, 82, "MID"));
     arsenal.addPlayers(new Player("Aaron Ramsdale", 26, "England", 50, 85, 75, 70, 88, 90, "GK"));
     arsenal.addPlayers(new Player("Gabriel Jesus", 27, "Brazil", 85, 82, 75, 85, 75, 80, "FW"));
     arsenal.addPlayers(new Player("William Saliba", 23, "France", 75, 70, 80, 75, 90, 85, "DF"));
