@@ -6,30 +6,31 @@ public class Club {
     private String name, stadion;
     private Coach coach;
     private int capacity, play = 0, win = 0, draw = 0, lose = 0, goalattack = 0, goaldefense = 0, point = 0;
-    int cnt = 1, avg = 0, en = 1;
+    int cnt = 1, Rating = 0, en = 1;
 
     private ArrayList<Integer> weeklyScore = new ArrayList<>();
     private ArrayList<Boolean> visited = new ArrayList<>();
     private ArrayList<Player> arrayOfPlayers = new ArrayList<>();
     private ArrayList<Club> enemy;
+    private ArrayList<Boolean> isHome = new ArrayList<>();
     private Map<Club, Map<Club, Boolean>> head2head = new HashMap<>();
 
-    public void setHead2Head(Club opponent, int goala, int goalb){
+    public void setHead2Head(Club opponent, int goala, int goalb) {
         head2head.putIfAbsent(this, new HashMap<>());
         head2head.putIfAbsent(opponent, new HashMap<>());
-        if(goala > goalb){
+        if (goala > goalb) {
             head2head.get(this).put(opponent, true);
             head2head.get(opponent).put(this, false);
-        }else if(goalb > goala){
+        } else if (goalb > goala) {
             head2head.get(opponent).put(this, true);
             head2head.get(this).put(opponent, false);
-        }else{
+        } else {
             head2head.get(opponent).put(this, null);
             head2head.get(this).put(opponent, null);
         }
     }
 
-    public boolean getHead2Head(Club opponent){
+    public boolean getHead2Head(Club opponent) {
         return head2head.getOrDefault(this, new HashMap<>()).get(opponent);
     }
 
@@ -72,34 +73,45 @@ public class Club {
         }
     }
 
-
-    //Stats
-    public void setPlay(){
+    // Stats
+    public void setPlay() {
         play++;
     }
-    public void setWin(){
+
+    public void setWin() {
         win++;
     }
-    public void setDraw(){
+
+    public void setDraw() {
         draw++;
     }
-    public void setLose(){
+
+    public void setLose() {
         lose++;
     }
-    public void setGoalAttack(int g){
+
+    public void setGoalAttack(int g) {
         goalattack += g;
     }
-    public void setGoalDefense(int g){
+
+    public void setGoalDefense(int g) {
         goaldefense += g;
     }
-    public void setPoint(int p){
+
+    public void setPoint(int p) {
         point += p;
     }
-    public void setEnemy(int week, Club enemyClub) {
-        while (enemy.size() <= week) {
+
+    public void setEnemy(int week, Club enemyClub, boolean home) {
+        while (enemy.size() <= week + 1) {
             enemy.add(null);
         }
         enemy.set(week, enemyClub);
+
+        while (isHome.size() <= week + 1) {
+            isHome.add(false);
+        }
+        isHome.set(week, home);
     }
 
     public Club getEnemy(int week) {
@@ -108,92 +120,117 @@ public class Club {
         }
         return null;
     }
-    public int getPlay(){
+
+    public int getPlay() {
         return play;
     }
-    public int getWin(){
+
+    public int getWin() {
         return win;
     }
-    public int getDraw(){
+
+    public int getDraw() {
         return draw;
     }
-    public int getLose(){
+
+    public int getLose() {
         return lose;
     }
-    public int getGoalAttack(){
+
+    public int getGoalAttack() {
         return goalattack;
     }
-    public int getGoalDefense(){
+
+    public int getGoalDefense() {
         return goaldefense;
     }
-    public int getPoint(){
+
+    public int getPoint() {
         return point;
     }
 
-    //Club
-    public void setName(String name){
+    public Boolean getIsHome(int week) {
+        if (week < isHome.size()) {
+            return isHome.get(week);
+        }
+        return null;
+    }
+
+    public ArrayList<Player> getPlayers() {
+        return arrayOfPlayers;
+    }
+
+    // Club
+    public void setName(String name) {
         this.name = name;
     }
-    public void setStadion(String stadion){
+
+    public void setStadion(String stadion) {
         this.stadion = stadion;
     }
-    public void setCapacity(int capacity){
+
+    public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
-    public String getName(){
+
+    public String getName() {
         return name;
     }
-    public int getCapacity(){
+
+    public int getCapacity() {
         return capacity;
     }
-    public String getStadion(){
+
+    public String getStadion() {
         return stadion;
     }
-    
-    //Coach
-    public void setCoach(Coach coach){
+
+    // Coach
+    public void setCoach(Coach coach) {
         this.coach = coach;
     }
-    public Coach getCoach(){
+
+    public Coach getCoach() {
         return coach;
     }
 
-    //Player manageement
-    public void addPlayers(Player player){      //to add player
+    // Player management
+    public void addPlayers(Player player) { // to add player
         arrayOfPlayers.add(player);
         cnt++;
     }
-    public void setPlayer(int ind, Player player){  //to add player at speecific ind
+
+    public void setPlayer(int ind, Player player) { // to add player at speecific ind
         arrayOfPlayers.set(ind, player);
     }
-    public Player getPlayer(int ind){
+
+    public Player getPlayer(int ind) {
         return arrayOfPlayers.get(ind);
     }
-    public int calculateAvgPlayers() {
-        int totalAvg = 0;
+
+    public int calculateRatingPlayers() {
+        int totalRating = 0;
         int playerCount = 0;
-    
+
         for (Player player : arrayOfPlayers) {
-            if (player != null) { 
-                totalAvg += player.getAvg();
+            if (player != null) {
+                totalRating += player.calculateRating();
                 playerCount++;
             }
         }
-    
-        if(playerCount > 0){
-            return totalAvg / playerCount;
-        }else{
-            return 0; 
+
+        if (playerCount > 0) {
+            return totalRating / playerCount;
+        } else {
+            return 0;
         }
     }
-    
 
-    public int getAvgPlayer(){
-        return calculateAvgPlayers(); 
+    public int getRatingPlayer() {
+        return calculateRatingPlayers();
     }
-    
 
-    public Club(){
+    public Club() {
         name = "";
         stadion = "";
         capacity = 0;
@@ -202,22 +239,21 @@ public class Club {
         enemy = new ArrayList<>();
     }
 
-    public Club(String name, String stadion, int capacity){
+    public Club(String name, String stadion, int capacity) {
         this.name = name;
         this.stadion = stadion;
         this.capacity = capacity;
         this.enemy = new ArrayList<>();
     }
 
+    public void viewClub() {
+        System.out.println("Club Name = " + name);
+        System.out.println("Stadion = " + stadion);
+        System.out.println("Capacity = " + capacity);
 
-    public void viewClub(){
-        System.out.println("Club Name = "+name);
-        System.out.println("Stadion = "+stadion);
-        System.out.println("Capacity = "+capacity);
-
-        if(coach == null){
+        if (coach == null) {
             System.out.println("Coach = -");
-        }else{
+        } else {
             System.out.println("Coach = " + coach.getName() + " - " + coach.getAge() + " - " + coach.getAge());
         }
 
@@ -227,7 +263,8 @@ public class Club {
             System.out.println("Player :");
             for (int i = 0; i < arrayOfPlayers.size(); i++) {
                 Player player = arrayOfPlayers.get(i);
-                System.out.println((i + 1) + ". " + player.getName() + " - " + player.getPosition() + " - " + player.getAge());
+                System.out.println(
+                        (i + 1) + ". " + player.getName() + " - " + player.getPosition() + " - " + player.getAge());
             }
         }
     }
