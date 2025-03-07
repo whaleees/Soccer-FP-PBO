@@ -47,7 +47,7 @@ public class Player extends Human {
             case "FW":
                 // Higher weight on shooting, dribbling, pace, and physical
                 rating = (int) ((shooting * 0.3) +
-                        (shooting * 0.25) +
+                        (dribbling * 0.25) +
                         (pace * 0.2) +
                         (physical * 0.15) +
                         (passing * 0.1));

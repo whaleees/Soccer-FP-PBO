@@ -230,6 +230,10 @@ public class Club {
         return calculateRatingPlayers();
     }
 
+    public void displayPlayer(Player player) {
+        System.out.println(player.getName() + " - " + player.getPosition() + " - " + player.getAge());
+    }
+
     public Club() {
         name = "";
         stadion = "";
