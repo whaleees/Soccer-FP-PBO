@@ -355,7 +355,8 @@ public class League {
         System.out.printf("Rank\tClub\t\tPlay\tWin\tDraw\tLose\tGoalAttack\tGoalDefense\tPoint\n");
         int rank = 1;
         for (Club club : arrClub) {
-            System.out.printf("%d.\t%s\t\t%d\t%d\t%d\t%d\t%d\t\t%d\t\t%d\n", rank++, club.getName(), club.getPlay(),
+            System.out.printf("%d.\t%s\t\t%d\t%d\t%d\t%d\t%d\t\t%d\t\t%d\n", rank++, club.getName(), 
+            club.getPlay(),
                     club.getWin(), club.getDraw(),
                     club.getLose(), club.getGoalAttack(), club.getGoalDefense(), club.getPoint());
         }
